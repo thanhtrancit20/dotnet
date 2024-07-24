@@ -70,12 +70,9 @@ namespace MyApiNetCore8.Repositories.impl
         {
             var user = new User
             {
-                FirstName = model.firstName,
-                LastName = model.lastName,
                 Email = model.email,
                 UserName = model.userName,
-                DateOfBirth = model.Dob.Date,
-                Gender = model.gender,
+                Avatar = model.Avatar
             };
 
             var result = await userManager.CreateAsync(user, model.password);
@@ -111,7 +108,7 @@ namespace MyApiNetCore8.Repositories.impl
             var token = new JwtSecurityToken(
                 issuer: configuration["JWT:ValidIssuer"],
                 audience: configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddSeconds(10),
+                expires: DateTime.Now.AddHours(1),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha512Signature)
             );
@@ -235,7 +232,7 @@ namespace MyApiNetCore8.Repositories.impl
             var user = await userManager.FindByNameAsync(username);
             var roles = await userManager.GetRolesAsync(user);
             var userResponse = mapper.Map<AccountResponse>(user);
-            userResponse.roles = roles.ToList();
+            userResponse.Roles = roles.ToList();
             return userResponse;
         }
 

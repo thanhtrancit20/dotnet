@@ -3,17 +3,17 @@ using MyApiNetCore8.Model;
 
 namespace MyApiNetCore8.DTO.Response;
 
-public class AccountResponse : BaseEntity
+public class AccountResponse
 {
-    public string id { get; set; }
-    public string username { get; set; }
-    public string firstName { get; set; }
-    public string lastName { get; set; }
-    public DateTime dateOfBirth { get; set; }
-    public Gender gender { get; set; }
-    public string phoneNumber { get; set; }
-    public string address { get; set; }
-    public string email { get; set; }
-    public string avatar { get; set; }
-    public IList<String> roles { get; set; }
+    public string Id { get; set; }
+    public string Username { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public DateTime DateOfBirth { get; set; }
+    public Gender Gender { get; set; }
+    public string PhoneNumber { get; set; }
+    public string Address { get; set; }
+    public string Email { get; set; }
+    public string Avatar { get; set; }
+    public IList<string> Roles { get; set; }
 }

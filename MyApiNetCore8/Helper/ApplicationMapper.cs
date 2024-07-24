@@ -7,18 +7,26 @@ namespace MyApiNetCore8.Helper
 {
     public class ApplicationMapper : Profile
     {
-        //CreateMap<ProductRequest, Product>()
-        //    .ForMember(dest => dest.Category, opt => opt.Ignore());
         public ApplicationMapper()
         {
 
             //User Map
             CreateMap<User, AccountResponse>()
-                .ForMember(dest => dest.email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ReverseMap();
-          
-            //User Map
+
+            CreateMap<TaskModel, TaskResponse>()
+                .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.TaskMembers.Select(tm => tm.User).ToList()))
+                .ForMember(dest => dest.ChatGroup, opt => opt.MapFrom(src => src.ChatGroup));
+
+            CreateMap<ChatGroup, ChatGroupResponse>()
+                .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.ChatGroupMembers.Select(cgm => cgm.User).ToList()));
+
+            CreateMap<ChatGroup, ChatGroupDto>()
+                .ForMember(dest => dest.TaskModelName, opt => opt.MapFrom(src => src.TaskModel.Name));
+            CreateMap<ChatGroupMember, ChatGroupMemberDto>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
         }
     }
 }

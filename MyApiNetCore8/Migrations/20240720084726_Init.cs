@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MyApiNetCore8.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -98,10 +98,10 @@ namespace MyApiNetCore8.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Tasks",
+                name: "TaskModels",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -111,17 +111,11 @@ namespace MyApiNetCore8.Migrations
                     Status = table.Column<string>(type: "ENUM('TODO', 'INPROCESS', 'DONE')", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Labels = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedBy = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ModifiedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tasks", x => x.Id);
+                    table.PrimaryKey("PK_TaskModels", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -253,26 +247,102 @@ namespace MyApiNetCore8.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "TaskModelUser",
+                name: "ChatGroups",
                 columns: table => new
                 {
-                    TaskModelsId = table.Column<long>(type: "bigint", nullable: false),
-                    UsersId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    TaskModelId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatGroups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatGroups_TaskModels_TaskModelId",
+                        column: x => x.TaskModelId,
+                        principalTable: "TaskModels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "TaskMembers",
+                columns: table => new
+                {
+                    TaskModelId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TaskModelUser", x => new { x.TaskModelsId, x.UsersId });
+                    table.PrimaryKey("PK_TaskMembers", x => new { x.TaskModelId, x.UserId });
                     table.ForeignKey(
-                        name: "FK_TaskModelUser_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_TaskMembers_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TaskModelUser_Tasks_TaskModelsId",
-                        column: x => x.TaskModelsId,
-                        principalTable: "Tasks",
+                        name: "FK_TaskMembers_TaskModels_TaskModelId",
+                        column: x => x.TaskModelId,
+                        principalTable: "TaskModels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ChatGroupMembers",
+                columns: table => new
+                {
+                    ChatGroupId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatGroupMembers", x => new { x.ChatGroupId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_ChatGroupMembers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatGroupMembers_ChatGroups_ChatGroupId",
+                        column: x => x.ChatGroupId,
+                        principalTable: "ChatGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ChatMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ChatGroupId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "varchar(255)", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Message = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SentAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_ChatGroups_ChatGroupId",
+                        column: x => x.ChatGroupId,
+                        principalTable: "ChatGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -316,9 +386,30 @@ namespace MyApiNetCore8.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskModelUser_UsersId",
-                table: "TaskModelUser",
-                column: "UsersId");
+                name: "IX_ChatGroupMembers_UserId",
+                table: "ChatGroupMembers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatGroups_TaskModelId",
+                table: "ChatGroups",
+                column: "TaskModelId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_ChatGroupId",
+                table: "ChatMessages",
+                column: "ChatGroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_UserId",
+                table: "ChatMessages",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskMembers_UserId",
+                table: "TaskMembers",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -340,19 +431,28 @@ namespace MyApiNetCore8.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ChatGroupMembers");
+
+            migrationBuilder.DropTable(
+                name: "ChatMessages");
+
+            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "TaskModelUser");
+                name: "TaskMembers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "ChatGroups");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Tasks");
+                name: "TaskModels");
         }
     }
 }

@@ -17,7 +17,7 @@ namespace MyApiNetCore8.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.5")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -154,6 +154,69 @@ namespace MyApiNetCore8.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TaskModelId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskModelId")
+                        .IsUnique();
+
+                    b.ToTable("ChatGroups");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatGroupMember", b =>
+                {
+                    b.Property<int>("ChatGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("ChatGroupId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatGroupMembers");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatGroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatMessages");
+                });
+
             modelBuilder.Entity("MyApiNetCore8.Model.RefreshToken", b =>
                 {
                     b.Property<long>("id")
@@ -176,31 +239,34 @@ namespace MyApiNetCore8.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("MyApiNetCore8.Model.TaskMember", b =>
+                {
+                    b.Property<int>("TaskModelId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("TaskModelId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TaskMembers");
+                });
+
             modelBuilder.Entity("MyApiNetCore8.Model.TaskModel", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Labels")
                         .HasColumnType("longtext");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
@@ -215,7 +281,7 @@ namespace MyApiNetCore8.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("TaskModels");
                 });
 
             modelBuilder.Entity("MyApiNetCore8.Model.User", b =>
@@ -301,21 +367,6 @@ namespace MyApiNetCore8.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("TaskModelUser", b =>
-                {
-                    b.Property<long>("TaskModelsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("TaskModelsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("TaskModelUser");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -367,19 +418,87 @@ namespace MyApiNetCore8.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TaskModelUser", b =>
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatGroup", b =>
                 {
-                    b.HasOne("MyApiNetCore8.Model.TaskModel", null)
-                        .WithMany()
-                        .HasForeignKey("TaskModelsId")
+                    b.HasOne("MyApiNetCore8.Model.TaskModel", "TaskModel")
+                        .WithOne("ChatGroup")
+                        .HasForeignKey("MyApiNetCore8.Model.ChatGroup", "TaskModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MyApiNetCore8.Model.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
+                    b.Navigation("TaskModel");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatGroupMember", b =>
+                {
+                    b.HasOne("MyApiNetCore8.Model.ChatGroup", "ChatGroup")
+                        .WithMany("ChatGroupMembers")
+                        .HasForeignKey("ChatGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MyApiNetCore8.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatGroup");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatMessage", b =>
+                {
+                    b.HasOne("MyApiNetCore8.Model.ChatGroup", "ChatGroup")
+                        .WithMany()
+                        .HasForeignKey("ChatGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyApiNetCore8.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("ChatGroup");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.TaskMember", b =>
+                {
+                    b.HasOne("MyApiNetCore8.Model.TaskModel", "TaskModel")
+                        .WithMany("TaskMembers")
+                        .HasForeignKey("TaskModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyApiNetCore8.Model.User", "User")
+                        .WithMany("TaskMembers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskModel");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.ChatGroup", b =>
+                {
+                    b.Navigation("ChatGroupMembers");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.TaskModel", b =>
+                {
+                    b.Navigation("ChatGroup");
+
+                    b.Navigation("TaskMembers");
+                });
+
+            modelBuilder.Entity("MyApiNetCore8.Model.User", b =>
+                {
+                    b.Navigation("TaskMembers");
                 });
 #pragma warning restore 612, 618
         }

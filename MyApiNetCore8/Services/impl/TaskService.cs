@@ -1,47 +1,70 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MyApiNetCore8.Data;
 using MyApiNetCore8.DTO.Request;
 using MyApiNetCore8.DTO.Response;
-using MyApiNetCore8.Enums;
 using MyApiNetCore8.Model;
+using MyApiNetCore8.Services;
 
 namespace MyApiNetCore8.Services.impl
 {
     public class TaskService : ITaskService
     {
         private readonly MyContext _context;
+        private readonly IMapper _mapper;
 
-        public TaskService(MyContext context)
+        public TaskService(MyContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<ActionResult<ApiResponse<TaskResponse>>> CreateTask(TaskCreateDTO taskDto)
+        public async Task<ApiResponse<TaskResponse>> CreateTaskAsync(CreateTaskDto createTaskDto)
         {
-            var task = new TaskModel
+            var taskModel = new TaskModel
             {
-                Name = taskDto.TaskName,
-                DueDate = DateTime.UtcNow, // You can set the due date based on your requirements
-                Priority = Priority.LOW, // Default priority
-                Status = Status.TODO, // Default status
-                Users = new List<User>() // Initialize the list of users
+                Name = createTaskDto.Name,
+                TaskMembers = createTaskDto.MemberIds.Select(id => new TaskMember
+                {
+                    UserId = id
+                }).ToList()
             };
 
-            // Find users by their IDs and add them to the task's Users collection
-            foreach (var userId in taskDto.UserIds)
+            var chatGroup = new ChatGroup
             {
-                var user = await _context.Users.FindAsync(userId);
-                if (user != null)
+                ChatGroupMembers = createTaskDto.MemberIds.Select(id => new ChatGroupMember
                 {
-                    task.Users.Add(user);
-                }
-            }
+                    UserId = id
+                }).ToList()
+            };
 
-            // Add task to the context and save changes
-            _context.Tasks.Add(task);
+            taskModel.ChatGroup = chatGroup;
+
+            _context.TaskModels.Add(taskModel);
             await _context.SaveChangesAsync();
+            var task = await _context.TaskModels
+                .Include(t => t.TaskMembers)
+                .ThenInclude(tm => tm.User)
+                .Include(t => t.ChatGroup)
+                .ThenInclude(cg => cg.ChatGroupMembers)
+                .ThenInclude(cgm => cgm.User)
+                .FirstOrDefaultAsync(t => t.Id == taskModel.Id);
+            var taskDto = _mapper.Map<TaskResponse>(taskModel);
+            return new ApiResponse<TaskResponse>(1000, "Task created successfully", taskDto);
+        }
 
-            return task;
+        public async Task<ApiResponse<IEnumerable<TaskResponse>>> GetAllTasksAsync()
+        {
+            var tasks = await _context.TaskModels
+                .Include(t => t.TaskMembers)
+                .ThenInclude(tm => tm.User)
+                .Include(t => t.ChatGroup)
+                .ThenInclude(cg => cg.ChatGroupMembers)
+                .ThenInclude(cgm => cgm.User)
+                .ToListAsync();
+
+            var taskDtos = _mapper.Map<IEnumerable<TaskResponse>>(tasks);
+            return new ApiResponse<IEnumerable<TaskResponse>>(1000, "Tasks retrieved successfully", taskDtos);
         }
     }
 }
